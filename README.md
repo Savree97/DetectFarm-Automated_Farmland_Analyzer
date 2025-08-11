@@ -1,101 +1,90 @@
-DetectFarm - Automated Farmland Analyzer
-🌟 Project Overview
-DetectFarm is a robust web application that leverages computer vision and data science to provide automated analysis of agricultural land from satellite or aerial imagery. This tool modernizes farmland management by quickly identifying individual plots, calculating key metrics, and generating actionable insights through a user-friendly interface.
+# 🌱 DetectFarm - Automated Farmland Analyzer
 
-This project was built to showcase a full-stack application that combines Flask for the backend, advanced Python libraries for image and data analysis, and a responsive front-end for data visualization.
+**DetectFarm** is a full-stack web application that leverages **computer vision** and **data science** to provide **automated analysis of agricultural land** from satellite or aerial imagery.  
+It modernizes farmland management by **identifying individual plots**, **calculating key metrics**, and **generating actionable insights** — all through an intuitive and responsive web interface.
 
-✨ Key Features
-Automated Plot Detection: Utilizes advanced image processing techniques to accurately identify and segment individual farmland plots from a single image.
+---
 
-Quantitative Land Analysis: Calculates and reports crucial metrics for each plot, including:
+## ✨ Features
 
-Total Area and Perimeter
+### 🔍 Automated Plot Detection
+- Uses advanced **image processing** to accurately **detect and segment** farmland plots from a single satellite/aerial image.
 
-Circularity and Solidity
+### 📏 Quantitative Land Analysis
+For each detected plot, the system calculates:
+- **Total Area** and **Perimeter**
+- **Circularity** and **Solidity**
+- **Fallow vs. Non-Fallow** status
 
-Fallow vs. Non-Fallow Status
+### 💡 Actionable Insights
+- **Fragmentation Index** for overall land utilization.
+- **Irrigation advisory** for better water management.
 
-Actionable Insights: Provides a comprehensive summary of land utilization, including the fragmentation index and an irrigation advisory.
+### 📊 Data-Driven Visualizations
+Automatically generates plots with **Matplotlib**:
+- Histogram of plot areas  
+- Box plot of plot circularity  
+- Pie chart of fallow vs. non-fallow plots  
+- Bar chart of irrigation advisory distribution  
 
-Data-Driven Visualizations: Generates a suite of informative plots using matplotlib to visualize key data points:
+### 🧠 Advanced Clustering
+- Uses **K-Means** and **PCA** to group similar plots and reveal hidden patterns.
 
-Histogram of Plot Areas
+### 📥 Downloadable Reports
+- Export **Excel reports** containing raw data and analysis for all detected plots.
 
-Box Plot of Plot Circularity
+---
 
-Pie Chart of Fallow vs. Non-Fallow Plots
+## ⚙️ Technology Stack
 
-Bar Chart of Irrigation Advisory Distribution
+### **Backend & Data Analysis**
+- Python 3.x
+- Flask – Web framework
+- OpenCV (`cv2`) – Image preprocessing & contour detection
+- scikit-image – Feature extraction with `regionprops`
+- NumPy – Numerical operations
+- Pandas – Data manipulation & report generation
+- Matplotlib – Data visualization
+- scikit-learn – K-Means clustering & PCA
 
-Advanced Clustering: Employs K-Means clustering and PCA to group plots based on their characteristics, revealing hidden patterns in the farmland.
+### **Frontend**
+- HTML5
+- Bootstrap 5 – Responsive UI
 
-Downloadable Reports: Allows users to download a detailed Excel spreadsheet containing the raw data and analysis results for every detected plot.
+---
 
-⚙️ Technologies Used
-Backend & Data Analysis:
+## 🚀 How It Works
 
-Python 3.x
+1. **Upload Image** – User uploads a satellite/aerial farmland image.
+2. **Preprocessing** – Image is resized, converted to grayscale, denoised, and processed using Otsu’s thresholding & Canny edge detection.
+3. **Contour & Feature Extraction** – Detects farmland boundaries and calculates shape metrics using `regionprops`.
+4. **Data Analysis** – Compiles extracted metrics into a Pandas DataFrame, applies K-Means clustering, and generates PCA visualizations.
+5. **Visualization & Output** – Renders:
+   - Annotated image with detected plots
+   - Statistical charts
+   - Downloadable Excel report
 
-Flask: Web framework for handling requests and serving the application.
+---
 
-OpenCV (cv2): Core library for image pre-processing and contour detection.
+## 🛠️ Installation
 
-scikit-image (skimage): Used for region property analysis (regionprops).
+### **Prerequisites**
+- Python 3.x
+- pip (Python package manager)
 
-NumPy: Essential for numerical operations on image data.
+### **Steps**
 
-Pandas: Data manipulation and analysis, used to generate summary tables and Excel reports.
-
-Matplotlib: Generates high-quality data visualizations and plots.
-
-scikit-learn (sklearn): Powers the K-Means clustering and Principal Component Analysis (PCA).
-
-Frontend:
-
-HTML5
-
-Bootstrap 5: Provides a responsive and clean user interface.
-
-🚀 How It Works
-Image Upload: A user uploads a satellite image of farmland via the web interface.
-
-Preprocessing: The image is resized, converted to grayscale, blurred to reduce noise, and then processed with Otsu's thresholding and Canny edge detection.
-
-Contour & Feature Extraction: The application finds all contours in the processed image, identifying potential plots. regionprops is used to calculate area, perimeter, and other features for each detected contour.
-
-Data Analysis: The extracted features are compiled into a pandas DataFrame. K-Means clustering is applied to the data, and a PCA plot is generated to visualize the clusters.
-
-Visualization & Output: matplotlib is used to create and save the various statistical plots. The results, including the original image with contours and plot numbers overlaid, are rendered on the index.html page along with an Excel download link.
-
-🛠️ Installation
-Prerequisites
-Python 3.x
-
-pip (Python package installer)
-
-Clone the Repository:
-
-git clone https://www.github.com/your-username/DetectFarm.git
+```bash
+# 1️⃣ Clone the repository
+git clone https://github.com/your-username/DetectFarm.git
 cd DetectFarm
 
-Create a Virtual Environment (Recommended):
-
+# 2️⃣ Create a virtual environment (recommended)
 python -m venv venv
-source venv/bin/activate  # On Windows, use `venv\Scripts\activate`
+# On Windows:
+venv\Scripts\activate
+# On macOS/Linux:
+source venv/bin/activate
 
-Install Dependencies:
-
+# 3️⃣ Install dependencies
 pip install Flask numpy opencv-python scikit-image pandas matplotlib scikit-learn
-
-Note: A requirements.txt file is not included in the provided code, but this command will install all necessary packages.
-
-▶️ Usage
-Run the Flask Application:
-
-python app.py
-
-Open in Browser:
-Open your web browser and navigate to http://127.0.0.1:5000.
-
-Upload an Image:
-Use the "Choose File" button to upload an image of farmland and click "Upload". The application will process the image and display the results.
