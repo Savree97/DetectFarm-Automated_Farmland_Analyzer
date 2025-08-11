@@ -88,3 +88,24 @@ source venv/bin/activate
 
 # 3️⃣ Install dependencies
 pip install Flask numpy opencv-python scikit-image pandas matplotlib scikit-learn
+
+## ▶️ Usage
+
+```bash
+# Run the Flask app
+python app.py
+Open your browser and go to: http://127.0.0.1:5000
+
+Upload a farmland image using the web interface.
+
+View:
+
+Detected plots with labels
+
+Statistical charts
+
+Downloadable Excel report
+
+
+👤 Author
+Savree Dohar
