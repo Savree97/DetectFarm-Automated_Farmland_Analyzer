@@ -1,166 +1,163 @@
 # 🌱 DetectFarm — Satellite Imagery Farmland Analyzer
 
-> Computer Vision + Unsupervised ML + Gemini AI Advisory · Built at MANIT Bhopal Research Internship
+> **Upload a satellite image. Get instant farmland intelligence.**  
+> Computer Vision · Unsupervised ML · Real-time Analytics · Built at MANIT Bhopal
 
-[![Live Demo](https://img.shields.io/badge/Live%20Demo-Hugging%20Face%20Spaces-orange)](https://huggingface.co/spaces/Savree97/detectfarm)
-[![Python](https://img.shields.io/badge/Python-3.11-blue)](https://python.org)
-[![Flask](https://img.shields.io/badge/Flask-3.0-green)](https://flask.palletsprojects.com)
+<div align="center">
 
----
+[![Live Demo](https://img.shields.io/badge/🚀%20Live%20Demo-Hugging%20Face%20Spaces-orange?style=for-the-badge)](https://sav06-detectfarm.hf.space)
+[![GitHub](https://img.shields.io/badge/GitHub-Savree97-black?style=for-the-badge&logo=github)](https://github.com/Savree97/DetectFarm-Automated_Farmland_Analyzer)
+[![Python](https://img.shields.io/badge/Python-3.11-blue?style=for-the-badge&logo=python)](https://python.org)
+[![Flask](https://img.shields.io/badge/Flask-3.0-green?style=for-the-badge&logo=flask)](https://flask.palletsprojects.com)
 
-## What It Does
-
-DetectFarm analyzes satellite or aerial farmland images and automatically:
-
-1. **Detects and segments** individual field plots using OpenCV and scikit-image
-2. **Extracts 4 real geometric features** per plot (area, circularity, brightness, solidity)
-3. **Clusters plots** into land-use categories using K-Means unsupervised learning
-4. **Generates a natural language advisory report** via Gemini 1.5 Flash based on the computed metrics
-5. **Exports** an Excel report with per-plot data and advisory recommendations
-
-All features are computed from the actual image — no placeholder or random values.
+</div>
 
 ---
 
-## Screenshots
+## 🖼️ What It Looks Like
 
-| Input Image | Detected Boundaries |
-|-------------|---------------------|
-| *(satellite image)* | *(annotated with plot IDs)* |
+| 🏠 Upload Interface | 🧠 K-Means Clustering (PCA) |
+|---|---|
+| ![Upload UI](screenshots/upload.png) | ![Clustering](screenshots/clustering.png) |
 
-| K-Means Clustering (PCA) | Summary Dashboard |
-|--------------------------|-------------------|
-| *(cluster plot)* | *(stats + advisory)* |
+| 📊 Data Visualizations |
+|---|
+| ![Charts](screenshots/charts.png) |
 
-> Upload a satellite image to try it live → [**Live Demo**](https://huggingface.co/spaces/Savree97/detectfarm)
+> 👆 **Try it yourself** → [**sav06-detectfarm.hf.space**](https://sav06-detectfarm.hf.space)  
+> Download [`example_input.png`](example_input.png) from this repo to test instantly.
 
 ---
 
-## How It Works — Technical Pipeline
+## 🔍 What DetectFarm Does
+
+Upload any satellite or aerial farmland image and DetectFarm automatically:
+
+- 🗺️ **Detects & segments** individual field plots using OpenCV + scikit-image
+- 📐 **Extracts 4 real geometric features** per plot — all computed from actual image pixels
+- 🤖 **Clusters plots** into land-use categories using K-Means unsupervised learning
+- 📈 **Generates 5 interactive visualizations** — area distribution, circularity, fallow pie, irrigation, brightness
+- 📥 **Exports** a full Excel advisory report with per-plot recommendations
+
+**Zero random values. Zero placeholders. Every feature is computed from the image.**
+
+---
+
+## ⚙️ Technical Pipeline
 
 ```
-Input Image (PNG/JPG)
+📸 Input Image (PNG / JPG / TIFF)
         │
         ▼
-   Resize to 512×512
+   Resize to 512×512  →  Grayscale  →  Gaussian Blur
         │
-        ▼
-   Grayscale + Gaussian Blur (noise reduction)
+        ├──► Canny Edge Detection ──────────────────► Contour Overlay Image
         │
-        ├──► Canny Edge Detection (contour overlay visualization)
-        │
-        └──► Otsu Thresholding (automatic binary segmentation)
+        └──► Otsu Thresholding (auto binary segmentation)
                   │
                   ▼
           Morphological Closing (fill boundary gaps)
                   │
                   ▼
-         skimage.label() + regionprops()
-         (extract per-region: area, perimeter,
-          eccentricity, solidity, intensity_mean)
+         skimage.label() + regionprops(intensity_image=gray)
                   │
                   ▼
-         Feature Engineering (4 real features):
-         • Area (px²)
-         • Circularity = 4π·area / perimeter²
-         • Mean Brightness (intensity_mean from regionprops)
-         • Solidity = area / convex_hull_area
+         ┌─────────────────────────────────────┐
+         │     4 Real Computed Features         │
+         │  • Area (px²)          region.area   │
+         │  • Circularity         4π·A/P²        │
+         │  • Mean Brightness     intensity_mean │
+         │  • Solidity            A/convex_hull  │
+         └─────────────────────────────────────┘
                   │
                   ▼
-         StandardScaler → K-Means (k=3)
-         Cluster names assigned by centroid area:
-         • Smallest area centroid → Fallow-like
-         • Medium area centroid  → Irregular or Small
-         • Largest area centroid → Large & Fertile
+         StandardScaler → KMeans (k=3)
+         Clusters named by centroid area:
+         🔴 Fallow-like · 🔵 Irregular or Small · 🟢 Large & Fertile
                   │
                   ▼
-         PCA (2D visualization of 4D feature space)
+         PCA → 2D cluster visualization
                   │
                   ▼
-         Gemini API (summary stats → natural language advisory)
-                  │
-                  ▼
-         Flask renders: annotated images + charts + advisory + Excel
+         Flask → Charts + Annotated Images + Excel Report
 ```
 
 ---
 
-## Feature Engineering Details
+## 🧪 Feature Engineering
 
-| Feature | Source | Real-world meaning |
-|---------|--------|--------------------|
-| **Area (px²)** | `region.area` | Plot size — large area = significant land |
-| **Circularity** | `4π·area/perimeter²` | Shape regularity (1.0 = circle, <0.1 = jagged) |
-| **Mean Brightness** | `region.intensity_mean` | Vegetation density proxy (dark = dense crop / shadow) |
-| **Solidity** | `region.solidity` | Shape compactness (1.0 = compact, <0.7 = fragmented) |
-
-All features are computed directly from image pixel data using `skimage.regionprops`.
+| Feature | How It's Computed | What It Means |
+|---------|------------------|---------------|
+| **Area (px²)** | `region.area` | Plot size — larger = more significant land |
+| **Circularity** | `4π · area / perimeter²` | Shape regularity (1.0 = circle, <0.1 = very jagged) |
+| **Mean Brightness** | `region.intensity_mean` | Vegetation proxy — dark = dense crop/shadow, bright = dry/bare soil |
+| **Solidity** | `area / convex_hull_area` | Shape compactness — low = fragmented, hard to access mechanically |
 
 ---
 
-## Advisory Logic
+## 🌾 Advisory Logic
 
-| Signal | Threshold | Advisory |
-|--------|-----------|----------|
-| Circularity < 0.05 | Highly irregular shape | "Not ideal for drip irrigation" |
-| Mean Brightness < 0.4 | Dark / shadowed region | "Lower solar potential" |
-| Solidity < 0.7 | Jagged, fragmented boundary | "Limited machinery access" |
-| Area < 100 px² | Very small detected region | "Fallow / composting candidate" |
+| Feature | Threshold | Advisory Generated |
+|---------|-----------|-------------------|
+| Circularity | < 0.05 | ⚠️ Not ideal for drip irrigation |
+| Mean Brightness | < 0.4 | ☁️ Lower solar potential |
+| Solidity | < 0.7 | 🚜 Limited machinery access |
+| Area | < 100 px² | 🌿 Fallow / composting candidate |
 
 ---
 
-## Tech Stack
+## 🛠️ Tech Stack
 
 | Layer | Technology |
 |-------|-----------|
-| Web framework | Flask 3.0 |
-| Image processing | OpenCV, Pillow |
-| Feature extraction | scikit-image (`regionprops`) |
-| ML clustering | scikit-learn (KMeans, StandardScaler, PCA) |
-| Data | pandas, NumPy |
-| Visualization | Matplotlib |
-| AI advisory | Google Gemini 1.5 Flash API |
-| Deployment | Hugging Face Spaces (Docker) |
+| 🌐 Web Framework | Flask 3.0 |
+| 🖼️ Image Processing | OpenCV, Pillow |
+| 🔬 Feature Extraction | scikit-image (`regionprops`) |
+| 🤖 ML Clustering | scikit-learn (KMeans, StandardScaler, PCA) |
+| 📊 Data & Visualization | pandas, NumPy, Matplotlib |
+| ☁️ Deployment | Hugging Face Spaces (Docker) |
 
 ---
 
-## Run Locally
+## 🚀 Run Locally
 
 ```bash
-# Clone
+# Clone the repo
 git clone https://github.com/Savree97/DetectFarm-Automated_Farmland_Analyzer.git
 cd DetectFarm-Automated_Farmland_Analyzer
 
-# Create virtual environment
-python -m venv venv
-source venv/bin/activate        # macOS/Linux
-venv\Scripts\activate           # Windows
-
 # Install dependencies
 pip install -r requirements.txt
-
-# Set Gemini API key (optional — app works without it, skips advisory)
-export GEMINI_API_KEY=your_key_here   # macOS/Linux
-set GEMINI_API_KEY=your_key_here      # Windows
 
 # Run
 python app.py
 # Open http://localhost:5000
 ```
 
-Get a free Gemini API key at [aistudio.google.com](https://aistudio.google.com) — no credit card required.
+---
+
+## 📌 Project Context
+
+Built during a **Summer Research Internship** at  
+**MANIT Bhopal — Centre of Excellence in Product Design and Smart Manufacturing** (June–July 2025)
+
+**Research goal:** Automate farmland plot characterization from low-cost RGB satellite imagery without ground-truth labels, using unsupervised machine learning.
 
 ---
 
-## Project Context
+## 👤 Author
 
-Built during a Summer Research Internship at **MANIT Bhopal — Centre of Excellence in Product Design and Smart Manufacturing** (June–July 2025).
+**Savree Dohar**  
+B.Tech CSE · Thapar Institute of Engineering and Technology  
 
-Research goal: automate farmland plot characterization from low-cost RGB satellite imagery without ground-truth labels, using unsupervised learning.
+[![GitHub](https://img.shields.io/badge/GitHub-Savree97-black?style=flat&logo=github)](https://github.com/Savree97)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-savree--dohar-blue?style=flat&logo=linkedin)](https://www.linkedin.com/in/savree-dohar-8a53002a2)
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-DetectFarm-orange?style=flat)](https://sav06-detectfarm.hf.space)
 
 ---
 
-## Author
+<div align="center">
 
-**Savree Dohar** — B.Tech CSE, Thapar Institute of Engineering and Technology  
-[GitHub](https://github.com/Savree97) · [LinkedIn](https://linkedin.com/in/savree-dohar)
+Made with ❤️ for farmers, researchers, and the planet 🌍
+
+</div>
