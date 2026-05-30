@@ -1,101 +1,166 @@
-# 🌱 DetectFarm - Automated Farmland Analyzer
+# 🌱 DetectFarm — Satellite Imagery Farmland Analyzer
 
-**DetectFarm** is a full-stack web application that leverages **computer vision** and **data science** to provide **automated analysis of agricultural land** from satellite or aerial imagery.  
-It modernizes farmland management by **identifying individual plots**, **calculating key metrics**, and **generating actionable insights** — all through an intuitive and responsive web interface.
+> Computer Vision + Unsupervised ML + Gemini AI Advisory · Built at MANIT Bhopal Research Internship
 
----
-
-## ✨ Features
-
-### 🔍 Automated Plot Detection
-- Uses advanced **image processing** to accurately **detect and segment** farmland plots from a single satellite/aerial image.
-
-### 📏 Quantitative Land Analysis
-For each detected plot, the system calculates:
-- **Total Area** and **Perimeter**
-- **Circularity** and **Solidity**
-- **Fallow vs. Non-Fallow** status
-
-### 💡 Actionable Insights
-- **Fragmentation Index** for overall land utilization.
-- **Irrigation advisory** for better water management.
-
-### 📊 Data-Driven Visualizations
-Automatically generates plots with **Matplotlib**:
-- Histogram of plot areas  
-- Box plot of plot circularity  
-- Pie chart of fallow vs. non-fallow plots  
-- Bar chart of irrigation advisory distribution  
-
-### 🧠 Advanced Clustering
-- Uses **K-Means** and **PCA** to group similar plots and reveal hidden patterns.
-
-### 📥 Downloadable Reports
-- Export **Excel reports** containing raw data and analysis for all detected plots.
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-Hugging%20Face%20Spaces-orange)](https://huggingface.co/spaces/Savree97/detectfarm)
+[![Python](https://img.shields.io/badge/Python-3.11-blue)](https://python.org)
+[![Flask](https://img.shields.io/badge/Flask-3.0-green)](https://flask.palletsprojects.com)
 
 ---
 
-## ⚙️ Technology Stack
+## What It Does
 
-### **Backend & Data Analysis**
-- Python 3.x
-- Flask – Web framework
-- OpenCV (`cv2`) – Image preprocessing & contour detection
-- scikit-image – Feature extraction with `regionprops`
-- NumPy – Numerical operations
-- Pandas – Data manipulation & report generation
-- Matplotlib – Data visualization
-- scikit-learn – K-Means clustering & PCA
+DetectFarm analyzes satellite or aerial farmland images and automatically:
 
-### **Frontend**
-- HTML5
-- Bootstrap 5 – Responsive UI
+1. **Detects and segments** individual field plots using OpenCV and scikit-image
+2. **Extracts 4 real geometric features** per plot (area, circularity, brightness, solidity)
+3. **Clusters plots** into land-use categories using K-Means unsupervised learning
+4. **Generates a natural language advisory report** via Gemini 1.5 Flash based on the computed metrics
+5. **Exports** an Excel report with per-plot data and advisory recommendations
+
+All features are computed from the actual image — no placeholder or random values.
 
 ---
 
-## 🚀 How It Works
+## Screenshots
 
-1. **Upload Image** – User uploads a satellite/aerial farmland image.
-2. **Preprocessing** – Image is resized, converted to grayscale, denoised, and processed using Otsu’s thresholding & Canny edge detection.
-3. **Contour & Feature Extraction** – Detects farmland boundaries and calculates shape metrics using `regionprops`.
-4. **Data Analysis** – Compiles extracted metrics into a Pandas DataFrame, applies K-Means clustering, and generates PCA visualizations.
-5. **Visualization & Output** – Renders:
-   - Annotated image with detected plots
-   - Statistical charts
-   - Downloadable Excel report
+| Input Image | Detected Boundaries |
+|-------------|---------------------|
+| *(satellite image)* | *(annotated with plot IDs)* |
+
+| K-Means Clustering (PCA) | Summary Dashboard |
+|--------------------------|-------------------|
+| *(cluster plot)* | *(stats + advisory)* |
+
+> Upload a satellite image to try it live → [**Live Demo**](https://huggingface.co/spaces/Savree97/detectfarm)
 
 ---
 
-## 🛠️ Installation
+## How It Works — Technical Pipeline
 
-### **Prerequisites**
-- Python 3.x
-- pip (Python package manager)
+```
+Input Image (PNG/JPG)
+        │
+        ▼
+   Resize to 512×512
+        │
+        ▼
+   Grayscale + Gaussian Blur (noise reduction)
+        │
+        ├──► Canny Edge Detection (contour overlay visualization)
+        │
+        └──► Otsu Thresholding (automatic binary segmentation)
+                  │
+                  ▼
+          Morphological Closing (fill boundary gaps)
+                  │
+                  ▼
+         skimage.label() + regionprops()
+         (extract per-region: area, perimeter,
+          eccentricity, solidity, intensity_mean)
+                  │
+                  ▼
+         Feature Engineering (4 real features):
+         • Area (px²)
+         • Circularity = 4π·area / perimeter²
+         • Mean Brightness (intensity_mean from regionprops)
+         • Solidity = area / convex_hull_area
+                  │
+                  ▼
+         StandardScaler → K-Means (k=3)
+         Cluster names assigned by centroid area:
+         • Smallest area centroid → Fallow-like
+         • Medium area centroid  → Irregular or Small
+         • Largest area centroid → Large & Fertile
+                  │
+                  ▼
+         PCA (2D visualization of 4D feature space)
+                  │
+                  ▼
+         Gemini API (summary stats → natural language advisory)
+                  │
+                  ▼
+         Flask renders: annotated images + charts + advisory + Excel
+```
 
-### **Steps**
+---
+
+## Feature Engineering Details
+
+| Feature | Source | Real-world meaning |
+|---------|--------|--------------------|
+| **Area (px²)** | `region.area` | Plot size — large area = significant land |
+| **Circularity** | `4π·area/perimeter²` | Shape regularity (1.0 = circle, <0.1 = jagged) |
+| **Mean Brightness** | `region.intensity_mean` | Vegetation density proxy (dark = dense crop / shadow) |
+| **Solidity** | `region.solidity` | Shape compactness (1.0 = compact, <0.7 = fragmented) |
+
+All features are computed directly from image pixel data using `skimage.regionprops`.
+
+---
+
+## Advisory Logic
+
+| Signal | Threshold | Advisory |
+|--------|-----------|----------|
+| Circularity < 0.05 | Highly irregular shape | "Not ideal for drip irrigation" |
+| Mean Brightness < 0.4 | Dark / shadowed region | "Lower solar potential" |
+| Solidity < 0.7 | Jagged, fragmented boundary | "Limited machinery access" |
+| Area < 100 px² | Very small detected region | "Fallow / composting candidate" |
+
+---
+
+## Tech Stack
+
+| Layer | Technology |
+|-------|-----------|
+| Web framework | Flask 3.0 |
+| Image processing | OpenCV, Pillow |
+| Feature extraction | scikit-image (`regionprops`) |
+| ML clustering | scikit-learn (KMeans, StandardScaler, PCA) |
+| Data | pandas, NumPy |
+| Visualization | Matplotlib |
+| AI advisory | Google Gemini 1.5 Flash API |
+| Deployment | Hugging Face Spaces (Docker) |
+
+---
+
+## Run Locally
 
 ```bash
-# 1️⃣ Clone the repository
-git clone https://github.com/your-username/DetectFarm.git
-cd DetectFarm
+# Clone
+git clone https://github.com/Savree97/DetectFarm-Automated_Farmland_Analyzer.git
+cd DetectFarm-Automated_Farmland_Analyzer
 
-# 2️⃣ Create a virtual environment (recommended)
+# Create virtual environment
 python -m venv venv
-# On Windows:
-venv\Scripts\activate
-# On macOS/Linux:
-source venv/bin/activate
+source venv/bin/activate        # macOS/Linux
+venv\Scripts\activate           # Windows
 
-# 3️⃣ Install dependencies
-pip install Flask numpy opencv-python scikit-image pandas matplotlib scikit-learn
+# Install dependencies
+pip install -r requirements.txt
 
-## ▶️ Usage
+# Set Gemini API key (optional — app works without it, skips advisory)
+export GEMINI_API_KEY=your_key_here   # macOS/Linux
+set GEMINI_API_KEY=your_key_here      # Windows
 
-
-# Run the Flask app
+# Run
 python app.py
+# Open http://localhost:5000
+```
 
+Get a free Gemini API key at [aistudio.google.com](https://aistudio.google.com) — no credit card required.
 
+---
 
-👤 Author
-Savree Dohar
+## Project Context
+
+Built during a Summer Research Internship at **MANIT Bhopal — Centre of Excellence in Product Design and Smart Manufacturing** (June–July 2025).
+
+Research goal: automate farmland plot characterization from low-cost RGB satellite imagery without ground-truth labels, using unsupervised learning.
+
+---
+
+## Author
+
+**Savree Dohar** — B.Tech CSE, Thapar Institute of Engineering and Technology  
+[GitHub](https://github.com/Savree97) · [LinkedIn](https://linkedin.com/in/savree-dohar)
